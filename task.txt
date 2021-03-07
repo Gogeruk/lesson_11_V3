@@ -1,0 +1,77 @@
+Хотел бы обратить ваше внимание на подобный фрагмент:
+
+
+$user = \App\Models\User::where('name', "$user_name")->first();
+
+$category = \App\Models\Category::where('title', "$category_name")->first();
+
+$tag = \App\Models\Tag::where('title', "$tag_name")->first();
+
+...
+
+
+$posts_of = \App\Models\Post::whereHas('tags', function (\Illuminate\Database\Eloquent\Builder $query) use ($user, $category, $tag) {
+
+  $query->where('user_id',   '=', $user->id);
+
+  $query->where('category_id', '=', $category->id);
+
+  $query->where('tag_id',    '=', $tag->id);
+
+})->paginate(5);
+
+
+Давайте посчитаем сколько запросов будет выполнено в результате выполнения данного фрагмента:
+
+$user = \App\Models\User::where('name', "$user_name")->first(); // 1
+
+$category = \App\Models\Category::where('title', "$category_name")->first(); // 2
+
+$tag = \App\Models\Tag::where('title', "$tag_name")->first(); // 3
+
+
+$posts_of = \App\Models\Post::whereHas('tags', function (\Illuminate\Database\Eloquent\Builder $query) use ($user, $category, $tag) {
+
+  $query->where('user_id',   '=', $user->id);
+
+  $query->where('category_id', '=', $category->id);
+
+  $query->where('tag_id',    '=', $tag->id);
+
+})->paginate(5); //4
+
+
+Теперь давайте посмотрим на этот фрагмент:
+
+$posts = Post::where('user_id', $authorId)
+
+  ->where('category_id', $categoryId)
+
+  ->whereHas('tags', function(Builder $query) use ($tagId){
+
+    $query->where('tags.id', $tagId);
+
+  })
+
+  ->paginate(15);
+
+
+В итоге второй фрагмент выполнит только один запрос.
+
+
+В данном контексте 4 запроса - это хуже, чем один.
+
+
+Обращайте внимание на подобные вещи, чтобы делать код более оптимальным.
+
+
+
+///////////////////
+formig a task:
+1.
+    optimize yoour code to be with the least amount of qoueries.
+2.
+    maybe do stuff using ids instead of 'names' to be more efficient.
+
+
+The error was thrown from the atom-autocomplete-php package. This issue has already been reported.
